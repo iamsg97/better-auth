@@ -637,6 +637,10 @@ export const deleteUserCallback = createAuthEndpoint(
 	},
 );
 
+/**
+ * TODO: update the user's email in stripe, if the user has a stripe account
+ * We need to know, how the current transaction is from stripe, so we can update the email?
+ */
 export const changeEmail = createAuthEndpoint(
 	"/change-email",
 	{

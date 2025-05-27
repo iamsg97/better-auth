@@ -12,10 +12,13 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "@better-auth/stripe": "^1.2.8",
     "@noble/ciphers": "^0.6.0",
+    "@prisma/client": "^6.8.2",
     "@types/better-sqlite3": "^7.6.12",
-    "better-auth": "workspace:*",
+    "better-auth": "^1.2.8",
     "better-sqlite3": "^11.6.0",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "stripe": "^18.0.0"
   }
 }
