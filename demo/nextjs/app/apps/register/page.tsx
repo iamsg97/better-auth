@@ -35,7 +35,7 @@ export default function RegisterOAuthClient() {
 			return;
 		}
 		const res = await client.oauth2.register({
-			name,
+			client_name: name,
 			icon: await convertImageToBase64(logo),
 			redirectURLs: [redirectUri],
 		});
