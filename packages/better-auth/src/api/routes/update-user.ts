@@ -10,6 +10,7 @@ import { parseUserInput } from "../../db/schema";
 import { generateRandomString } from "../../crypto";
 import { BASE_ERROR_CODES } from "../../error/codes";
 import { originCheck } from "../middlewares";
+import { logger } from "../../utils";
 
 export const updateUser = <O extends BetterAuthOptions>() =>
 	createAuthEndpoint(
@@ -730,6 +731,20 @@ export const changeEmail = createAuthEndpoint(
 				},
 				ctx,
 			);
+			// update user email in stripe if the user has a stripe account
+			const accounts = await ctx.context.internalAdapter.findAccounts(
+				ctx.context.session.user.id,
+			);
+			ctx.context.logger.info(
+				`Stripe account found: ${JSON.stringify(accounts, null, 2)}`,
+			);
+			const stripeAccount = accounts.find(
+				(account) => account.providerId === "stripe",
+			);
+			ctx.context.logger.info(
+				`Stripe account found: ${stripeAccount ? "Yes" : "No"}`,
+			);
+
 			await setSessionCookie(ctx, {
 				session: ctx.context.session.session,
 				user: {

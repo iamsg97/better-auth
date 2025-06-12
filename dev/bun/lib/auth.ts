@@ -1,11 +1,11 @@
-import { betterAuth, logger } from "better-auth";
-import { stripe } from "@better-auth/stripe";
-import Stripe from "stripe";
-import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "@prisma/client";
+import Stripe from "stripe";
+import { prismaAdapter } from "../../../packages/better-auth/dist/adapters/prisma-adapter/index";
+import { betterAuth, logger } from "../../../packages/better-auth/dist/index";
+import { stripe } from "../../../packages/stripe/dist/index";
 
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-	apiVersion: "2025-04-30.basil",
+	apiVersion: "2025-03-31.basil",
 });
 
 const prismaClient = new PrismaClient();
@@ -17,8 +17,8 @@ export const auth = betterAuth({
 		provider: "sqlite",
 	}),
 	emailAndPassword: {
-		requireEmailVerification: true,
-		enabled: false,
+		requireEmailVerification: false, // temp: set to false for testing | ref: packages/better-auth/src/api/routes/sign-in.ts:501
+		enabled: true,
 		sendResetPassword: async ({ user, url }, request) => {
 			logger.debug(`Incoming request: ${JSON.stringify(request, null, 2)}`);
 			logger.info(`User details: ${JSON.stringify(user, null, 2)}`);
@@ -38,11 +38,37 @@ export const auth = betterAuth({
 			},
 		},
 	},
+	// session: {
+	// 	additionalFields: {
+	// 		referralSource: ,
+	// 	},
+	// },
 	plugins: [
 		stripe({
-			stripeClient,
+			stripeClient: stripeClient,
 			stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
 			createCustomerOnSignUp: true,
+			subscription: {
+				enabled: true,
+				plans: [
+					// Your existing plans
+				],
+			},
+			onCustomerCreate: async ({ customer, stripeCustomer, user }, request) => {
+				// Do something with the newly created customer
+				console.log(
+					`Customer ${customer.id} created for user ${user.id}, and Stripe customer ID is ${stripeCustomer.id}`,
+				);
+			},
+			getCustomerCreateParams: async ({ user, session }, request) => {
+				// Customize the Stripe customer creation parameters
+				return {
+					metadata: {
+						referralSource: (user as any).metadata?.referralSource,
+					},
+				};
+			},
 		}),
 	],
+	trustedOrigins: ["http://localhost:3000"],
 });
