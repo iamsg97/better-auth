@@ -1,23 +1,24 @@
 import {
-	type GenericEndpointContext,
 	type BetterAuthPlugin,
+	type GenericEndpointContext,
 	logger,
 } from "better-auth";
+import {
+	APIError,
+	getSessionFromCtx,
+	originCheck,
+	sessionMiddleware,
+} from "better-auth/api";
+import { generateRandomString } from "better-auth/crypto";
 import { createAuthEndpoint, createAuthMiddleware } from "better-auth/plugins";
 import Stripe from "stripe";
 import { z } from "zod";
-import {
-	sessionMiddleware,
-	APIError,
-	originCheck,
-	getSessionFromCtx,
-} from "better-auth/api";
-import { generateRandomString } from "better-auth/crypto";
 import {
 	onCheckoutSessionCompleted,
 	onSubscriptionDeleted,
 	onSubscriptionUpdated,
 } from "./hooks";
+import { getSchema } from "./schema";
 import type {
 	Customer,
 	InputSubscription,
@@ -26,7 +27,6 @@ import type {
 	Subscription,
 } from "./types";
 import { getPlanByName, getPlanByPriceId, getPlans } from "./utils";
-import { getSchema } from "./schema";
 
 const STRIPE_ERROR_CODES = {
 	SUBSCRIPTION_NOT_FOUND: "Subscription not found",
@@ -1038,6 +1038,62 @@ export const stripe = <O extends StripeOptions>(options: O) => {
 									}
 								},
 							},
+							update: {
+								async after(user, ctx) {
+									try {
+										if (!user.emailVerified) {
+											await options.onCustomerEmailUpdateError?.({
+												user,
+												email: user.email,
+												error: new Error(
+													"Email is not verified, unable to update user info to stripe",
+												),
+											});
+										}
+										const stripeCustomer =
+											await ctx?.context.adapter.findOne<Customer>({
+												model: "user",
+												where: [
+													{
+														field: "id",
+														value: user.id,
+													},
+												],
+											});
+										ctx?.context.logger.info(
+											`user: ${JSON.stringify(
+												stripeCustomer?.stripeCustomerId,
+												null,
+												2,
+											)}`,
+										);
+										if (stripeCustomer?.stripeCustomerId && user.email) {
+											await client.customers.update(
+												stripeCustomer.stripeCustomerId,
+												{
+													email: user.email,
+												},
+											);
+											await options.onCustomerEmailUpdate?.({
+												user,
+												oldEmail: ctx?.context.session?.user.email!,
+												newEmail: user.email,
+												stripeCustomerId: stripeCustomer.stripeCustomerId,
+											});
+										}
+									} catch (error: any) {
+										ctx?.context.logger.error(
+											`Failed to update Stripe customer email for user ${user.id}: ${error.message}`,
+										);
+
+										await options.onCustomerEmailUpdateError?.({
+											user,
+											email: user.email,
+											error,
+										});
+									}
+								},
+							},
 						},
 					},
 				},
@@ -1047,4 +1103,4 @@ export const stripe = <O extends StripeOptions>(options: O) => {
 	} satisfies BetterAuthPlugin;
 };
 
-export type { Subscription, StripePlan };
+export type { StripePlan, Subscription };
