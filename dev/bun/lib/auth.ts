@@ -38,11 +38,6 @@ export const auth = betterAuth({
 			},
 		},
 	},
-	// session: {
-	// 	additionalFields: {
-	// 		referralSource: ,
-	// 	},
-	// },
 	plugins: [
 		stripe({
 			stripeClient: stripeClient,
@@ -67,6 +62,14 @@ export const auth = betterAuth({
 						referralSource: (user as any).metadata?.referralSource,
 					},
 				};
+			},
+			onCustomerEmailUpdate: async ({ user, oldEmail, newEmail }) => {
+				console.log(`Customer email updated from ${oldEmail} to ${newEmail}`);
+			},
+			onCustomerEmailUpdateError({ user, email, error }) {
+				logger.error(
+					`Error updating customer email: ${email} for user ${user.id}. Error: ${error.message}`,
+				);
 			},
 		}),
 	],
