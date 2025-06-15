@@ -1,16 +1,15 @@
 import { z } from "zod";
 import { createAuthEndpoint } from "../call";
 
-import { deleteSessionCookie, setSessionCookie } from "../../cookies";
-import { getSessionFromCtx, sessionMiddleware } from "./session";
 import { APIError } from "better-call";
-import { createEmailVerificationToken } from "./email-verification";
-import type { AdditionalUserFieldsInput, BetterAuthOptions } from "../../types";
-import { parseUserInput } from "../../db/schema";
+import { deleteSessionCookie, setSessionCookie } from "../../cookies";
 import { generateRandomString } from "../../crypto";
+import { parseUserInput } from "../../db/schema";
 import { BASE_ERROR_CODES } from "../../error/codes";
+import type { AdditionalUserFieldsInput, BetterAuthOptions } from "../../types";
 import { originCheck } from "../middlewares";
-import { logger } from "../../utils";
+import { createEmailVerificationToken } from "./email-verification";
+import { getSessionFromCtx, sessionMiddleware } from "./session";
 
 export const updateUser = <O extends BetterAuthOptions>() =>
 	createAuthEndpoint(
@@ -638,10 +637,6 @@ export const deleteUserCallback = createAuthEndpoint(
 	},
 );
 
-/**
- * TODO: update the user's email in stripe, if the user has a stripe account
- * We need to know, how the current transaction is from stripe, so we can update the email?
- */
 export const changeEmail = createAuthEndpoint(
 	"/change-email",
 	{
@@ -734,15 +729,6 @@ export const changeEmail = createAuthEndpoint(
 			// update user email in stripe if the user has a stripe account
 			const accounts = await ctx.context.internalAdapter.findAccounts(
 				ctx.context.session.user.id,
-			);
-			ctx.context.logger.info(
-				`Stripe account found: ${JSON.stringify(accounts, null, 2)}`,
-			);
-			const stripeAccount = accounts.find(
-				(account) => account.providerId === "stripe",
-			);
-			ctx.context.logger.info(
-				`Stripe account found: ${stripeAccount ? "Yes" : "No"}`,
 			);
 
 			await setSessionCookie(ctx, {
