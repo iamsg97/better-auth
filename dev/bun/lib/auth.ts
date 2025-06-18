@@ -67,11 +67,11 @@ export const auth = betterAuth({
 				console.log(`Customer email updated from ${oldEmail} to ${newEmail}`);
 			},
 			onCustomerEmailUpdateError({ user, email, error }) {
-				logger.error(
+				console.error(
 					`Error updating customer email: ${email} for user ${user.id}. Error: ${error.message}`,
 				);
 			},
 		}),
 	],
-	trustedOrigins: ["http://localhost:3000"],
+	trustedOrigins: ["http://localhost:3000", "http://localhost:4000"],
 });
