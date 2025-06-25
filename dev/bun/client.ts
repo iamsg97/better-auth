@@ -54,7 +54,7 @@ const signInResponse = await fetch(
 	{
 		method: "POST",
 		body: JSON.stringify({
-			email: "suvadeepghoshal@gmail.com",
+			email: "ghoshalsuvadeep@gmail.com",
 			password: "Argha@003026",
 			name: "Suvadeep Ghoshal",
 		}),
@@ -77,7 +77,7 @@ const changeEmailResponse = await fetch(
 	{
 		method: "POST",
 		body: JSON.stringify({
-			newEmail: "sgzoid97@gmail.com",
+			newEmail: "suvadeepghoshal@gmail.com",
 		}),
 		headers: {
 			"content-type": "application/json",
