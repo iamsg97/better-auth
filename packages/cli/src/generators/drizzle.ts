@@ -5,8 +5,8 @@ import {
 } from "better-auth/db";
 import type { BetterAuthOptions } from "better-auth/types";
 import { existsSync } from "fs";
-import type { SchemaGenerator } from "./types";
 import prettier from "prettier";
+import type { SchemaGenerator } from "./types";
 
 export function convertToSnakeCase(str: string, camelCase?: boolean) {
 	if (camelCase) {
@@ -159,6 +159,24 @@ export const generateDrizzleSchema: SchemaGenerator = async ({
 								} else {
 									type += `.default(${attr.defaultValue})`;
 								}
+							}
+
+							const onUpdate = attr.onUpdate;
+							if (typeof onUpdate !== "undefined" && onUpdate !== null) {
+								if (typeof onUpdate === "function") {
+									type += `.$onUpdate(${onUpdate})`;
+								} else if (typeof onUpdate === "string") {
+									type += `.$onUpdate(${onUpdate})`;
+								} else if (onUpdate === true) {
+									type += `.$onUpdate(() => /* @__PURE__ */ new Date())`;
+								}
+							} else if (
+								/** @description fail safe scenario */
+								field === "updated" ||
+								field === "updatedAt" ||
+								field === "updated_at"
+							) {
+								type += `.$onUpdate(() => /* @__PURE__ */ new Date())`;
 							}
 							return `${field}: ${type}${attr.required ? ".notNull()" : ""}${
 								attr.unique ? ".unique()" : ""

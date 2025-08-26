@@ -44,6 +44,11 @@ export type FieldAttributeConfig<T extends FieldType = FieldType> = {
 	 */
 	defaultValue?: Primitive | (() => Primitive);
 	/**
+	 * The value to set when the record is updated.
+	 * @default () => new Date()
+	 */
+	onUpdate?: Primitive | (() => Primitive);
+	/**
 	 * transform the value before storing it.
 	 */
 	transform?: {

@@ -161,6 +161,7 @@ export const getAuthTables = (
 				updatedAt: {
 					type: "date",
 					defaultValue: () => new Date(),
+					onUpdate: () => new Date(),
 					required: true,
 					fieldName: options.user?.fields?.updatedAt || "updatedAt",
 				},
