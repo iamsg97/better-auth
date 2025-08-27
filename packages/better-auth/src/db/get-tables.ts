@@ -96,6 +96,7 @@ export const getAuthTables = (
 					type: "date",
 					required: true,
 					fieldName: options.session?.fields?.updatedAt || "updatedAt",
+					onUpdate: () => new Date(),
 				},
 				ipAddress: {
 					type: "string",
@@ -245,6 +246,7 @@ export const getAuthTables = (
 					type: "date",
 					required: true,
 					fieldName: options.account?.fields?.updatedAt || "updatedAt",
+					onUpdate: () => new Date(),
 				},
 				...account?.fields,
 			},
@@ -278,6 +280,7 @@ export const getAuthTables = (
 					type: "date",
 					required: false,
 					defaultValue: () => new Date(),
+					onUpdate: () => new Date(),
 					fieldName: options.verification?.fields?.updatedAt || "updatedAt",
 				},
 			},
